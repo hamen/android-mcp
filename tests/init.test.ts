@@ -67,7 +67,7 @@ async function runTest() {
   }
 
   const init = messages.find((m) => m.id === 1);
-  assert(init?.result?.serverInfo?.name === 'android-adb', 'serverInfo missing or wrong');
+  assert(init?.result?.serverInfo?.name === 'android-mcp', 'serverInfo missing or wrong');
 
   const tools = messages.find((m) => m.id === 2);
   if (!Array.isArray(tools?.result?.tools)) {

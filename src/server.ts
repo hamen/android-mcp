@@ -45,7 +45,7 @@ function findNode(node: UiNode, text?: string, contentDesc?: string): UiNode | n
 }
 
 const server = new McpServer({
-  name: 'android-adb',
+  name: 'android-mcp',
   version: '0.2.0',
 });
 

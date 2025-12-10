@@ -1,5 +1,5 @@
 {
-  "name": "mcp-android-adb",
+  "name": "android-mcp",
   "version": "0.1.0",
   "private": true,
   "type": "module",
