@@ -1,60 +1,62 @@
-# Android ADB MCP
+# Android MCP 🤖✨
 
-MCP stdio server that talks to Android devices over the ADB protocol (using `@devicefarmer/adbkit`). It relies on the official `@modelcontextprotocol/sdk` with newline-delimited JSON-RPC framing (no `Content-Length` headers).
+[![npm](https://img.shields.io/badge/npm-private-lightgrey)](#) [![node](https://img.shields.io/badge/node-%E2%89%A518-green)](#-requirements) [![adb](https://img.shields.io/badge/ADB-required-blue)](#-requirements) [![ci](https://img.shields.io/badge/CI-coming%20soon-lightgrey)](#-notes--limits)
 
-## Requirements
+Friendly MCP stdio server that chats with Android devices over ADB using `@devicefarmer/adbkit`, speaking newline-delimited JSON-RPC via `@modelcontextprotocol/sdk` (no `Content-Length` headers needed). Plug it into Cursor/Claude MCP and start poking at devices.
 
-- ADB server available on the host (`adb start-server`).
+## ✨ What is this?
+- MCP transport that forwards handy ADB actions (tap, text, screenshot, UI dump, etc).
+- Uses newline-delimited JSON on stdin/stdout; one request per line, one response per line.
+- Prototype-friendly: swap out the minimal JSON-RPC loop for a full MCP SDK later if you want.
+
+## 📦 Requirements
+- ADB server running on your host (`adb start-server`).
 - Node.js 18+.
-- At least one device/emulator attached (`adb devices`).
+- At least one device or emulator attached (`adb devices`).
 
-## Install
-
+## 🚀 Quickstart
 ```bash
-cd mcp-android-adb
+git clone <repo-url> android-mcp
+cd android-mcp
 npm install
-```
-
-## Run (local)
-
-```bash
 npm run dev
 ```
+Keep `adb devices` happy, then fire JSON-RPC lines at stdin and watch stdout for replies.
 
-Send newline-delimited JSON requests on stdin, one per line. Responses are emitted on stdout, also one per line.
-
-## Cursor MCP entry
-
-Example `~/.cursor/mcp.json` entry (matches the repo layout):
-
+## 🧰 MCP config (Cursor/Claude)
+Example `~/.cursor/mcp.json` entry:
 ```json
 {
   "mcpServers": {
-    "android-adb": {
+    "android-mcp": {
       "type": "stdio",
       "command": "npx",
-      "args": ["--yes", "tsx", "/home/ivan/code/kindle-gratis-compose/mcp-android-adb/src/server.ts"],
-      "cwd": "/home/ivan/code/kindle-gratis-compose/mcp-android-adb"
+      "args": ["--yes", "tsx", "/home/ivan/code/android-mcp/src/server.ts"],
+      "cwd": "/home/ivan/code/android-mcp"
     }
   }
 }
 ```
 
-## Methods
-
-- `selectDevice` `{ serial }` → sets default device for subsequent calls.
-- `keyEvent` `{ keyCode, serial? }` → sends `input keyevent`.
+## 🎮 Tools exposed
+- `selectDevice` `{ serial }` → set default device for subsequent calls.
+- `keyEvent` `{ keyCode, serial? }` → send `input keyevent`.
 - `tap` `{ x, y, serial? }`
 - `text` `{ text, serial? }` → uses `input text` (spaces become `%s`).
 - `startActivity` `{ component, serial? }` → e.g. `"org.example/.MainActivity"`.
 - `screenshot` `{ serial? }` → `{ mimeType: "image/png", base64 }`.
 - `uiDump` `{ serial? }` → parsed `uiautomator dump` tree (text, contentDesc, resourceId, bounds).
-- `findAndTap` `{ text?, contentDesc?, serial? }` → finds first matching node in the UI tree and taps the center of its bounds.
-- `listDevicesDetailed` → lists all attached devices with model/manufacturer/sdk info.
+- `findAndTap` `{ text?, contentDesc?, serial? }` → finds the first matching node and taps its center.
+- `listDevicesDetailed` → lists attached devices with model/manufacturer/sdk info.
 
-## Notes and limits
-
-- Screenshot and UI dump are periodic (no streaming).
+## 📸 Notes & limits
+- Screenshot and UI dump are periodic snapshots (no streaming yet).
 - UI dump depends on `uiautomator` being present on the device.
-- This is a prototype transport; wiring to a full MCP SDK can replace the minimal JSON-RPC loop without changing the ADB helpers.
+- Prototype transport; you can wire in a richer MCP SDK without changing the ADB helpers.
+
+## 🧪 Tests
+```bash
+npm test
+```
+
 

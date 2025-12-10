@@ -1,6 +1,6 @@
-## MCP Android ADB – Standalone Repo Guide
+## Android MCP – Standalone Repo Guide
 
-This repo currently lives inside a larger monorepo. Follow these notes to split it out cleanly and set up local + CI workflows.
+This repo currently lives inside a larger monorepo. Follow these notes to split it out cleanly and set up local + CI workflows under the `android-mcp` name.
 
 ### Requirements
 - Node.js 18+ and npm.
@@ -9,8 +9,8 @@ This repo currently lives inside a larger monorepo. Follow these notes to split 
 
 ### Local setup (server only)
 ```bash
-git clone <new-repo-url> mcp-android-adb
-cd mcp-android-adb
+git clone <new-repo-url> android-mcp
+cd android-mcp
 npm install
 npm test      # runs stdio init/tools smoke test
 # run server
@@ -21,7 +21,7 @@ Cursor/Claude MCP entry (stdio):
 ```json
 {
   "mcpServers": {
-    "android-adb": {
+    "android-mcp": {
       "type": "stdio",
       "command": "npx",
       "args": ["--yes", "tsx", "<repo>/src/server.ts"],
@@ -68,12 +68,12 @@ jobs:
 ```
 
 ### How to split into its own repo
-1) Create a new GitHub repo (e.g., `mcp-android-adb`).
+1) Create a new GitHub repo (e.g., `android-mcp`).
 2) From the monorepo root:
 ```bash
-mkdir /tmp/mcp-android-adb
-cp -r mcp-android-adb/* /tmp/mcp-android-adb
-cd /tmp/mcp-android-adb
+mkdir /tmp/android-mcp
+cp -r android-mcp/* /tmp/android-mcp
+cd /tmp/android-mcp
 git init
 git add .
 git commit -m "Initial import from kindle-gratis-compose"
