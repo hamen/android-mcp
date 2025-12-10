@@ -10,18 +10,22 @@ Friendly MCP stdio server that chats with Android devices over ADB using `@devic
 - Prototype-friendly: swap out the minimal JSON-RPC loop for a full MCP SDK later if you want.
 
 ## 📦 Requirements
-- ADB server running on your host (`adb start-server`).
-- Node.js 18+.
+- Node.js 18+ and npm.
+- ADB on PATH (e.g., Android SDK platform-tools). Keep `adb start-server` running.
 - At least one device or emulator attached (`adb devices`).
+- Optional: Android SDK/Gradle only if you plan to build the demo app; not needed for the MCP server itself.
 
-## 🚀 Quickstart
+## 🚀 Setup (local)
 ```bash
 git clone <repo-url> android-mcp
 cd android-mcp
-npm install
-npm run dev
+npm ci           # or npm install
+npm test         # stdio + tsconfig smoke tests
+npm run dev      # start MCP server with tsx
+# or explicitly:
+npx --yes tsx src/server.ts
 ```
-Keep `adb devices` happy, then fire JSON-RPC lines at stdin and watch stdout for replies.
+To build output: `npm run build` (emits `dist/`). Keep `adb devices` happy before invoking tools.
 
 ## 🧰 MCP config (Cursor/Claude)
 Example `~/.cursor/mcp.json` entry:
@@ -59,4 +63,15 @@ Example `~/.cursor/mcp.json` entry:
 npm test
 ```
 
+## 📱 Optional: Build/install the demo app
+Only needed if you want to exercise the sample Android UI:
+```bash
+# from the parent monorepo that contains the Android app
+./gradlew assembleDebug
+adb install -r app/build/outputs/apk/debug/app-debug.apk
+adb shell am start -n org.dronix.android.kindlegratis/.MainActivity
+```
 
+## 🛠️ CI hints
+- Node workflow: checkout → setup-node 18+ → `npm ci` → `npm test`.
+- If building the Android app in CI, add Java 17 + Android SDK setup and run `./gradlew assembleDebug`.

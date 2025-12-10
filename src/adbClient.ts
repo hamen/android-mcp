@@ -10,16 +10,19 @@ export type UiNode = {
   children?: UiNode[];
 };
 
+type AdbDevice = { id: string; type: string };
+
 export class AdbService {
-  private client: ReturnType<typeof adb.createClient>;
+  // Using any to stay compatible with adbkit's CJS export shape.
+  private client: any;
 
   private defaultSerial?: string;
 
   constructor() {
-    this.client = adb.createClient();
+    this.client = new (adb as unknown as { Client: new () => any }).Client();
   }
 
-  async listDevices() {
+  async listDevices(): Promise<AdbDevice[]> {
     return this.client.listDevices();
   }
 

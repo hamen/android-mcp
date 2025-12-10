@@ -175,18 +175,6 @@ server.registerTool(
 );
 
 server.registerTool(
-  'deviceInfo',
-  {
-    description: 'Get device model/manufacturer/sdk for the selected or provided serial',
-    inputSchema: z.object({ serial: optionalSerial }),
-  },
-  async ({ serial }) => {
-    const info = await withTimeout(adbService.getDeviceInfo(serial));
-    return { content: [{ type: 'text', text: JSON.stringify(info) }] };
-  },
-);
-
-server.registerTool(
   'listDevicesDetailed',
   {
     description: 'List attached devices with model/manufacturer/sdk',
@@ -195,7 +183,7 @@ server.registerTool(
   async () => {
     const devices = await adbService.listDevices();
     const details = await Promise.all(
-      devices.map(async (d) => {
+      devices.map(async (d: { id: string; type: string }) => {
         try {
           const info = await withTimeout(adbService.getDeviceInfo(d.id));
           return { ...info, type: d.type };
