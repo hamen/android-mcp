@@ -19,7 +19,12 @@ export class AdbService {
   private defaultSerial?: string;
 
   constructor() {
-    this.client = new (adb as unknown as { Client: new () => any }).Client();
+    const adbAny = adb as any;
+    const createClient = adbAny.createClient ?? adbAny.default?.createClient;
+    if (typeof createClient !== 'function') {
+      throw new Error('adbkit createClient not found');
+    }
+    this.client = createClient();
   }
 
   async listDevices(): Promise<AdbDevice[]> {
@@ -43,46 +48,46 @@ export class AdbService {
   }
 
   async takeScreenshot(serial?: string): Promise<Buffer> {
-    const resolved = await this.resolveSerial(serial);
+    const { deviceClient } = await this.getDeviceClient(serial);
     try {
-      const stream = await this.client.screencap(resolved);
+      const stream = await deviceClient.screencap();
       return await this.readStreamAsBuffer(stream);
     } catch {
       // Fallback to shell-based screencap for devices that lack the service
-      const stream = await this.client.shell(resolved, 'screencap -p');
+      const stream = await deviceClient.shell('screencap -p');
       return await this.readStreamAsBuffer(stream);
     }
   }
 
   async sendKeyEvent(keyCode: number, serial?: string): Promise<void> {
-    const resolved = await this.resolveSerial(serial);
-    await this.client.shell(resolved, `input keyevent ${keyCode}`);
+    const { deviceClient } = await this.getDeviceClient(serial);
+    await deviceClient.shell(`input keyevent ${keyCode}`);
   }
 
   async tap(x: number, y: number, serial?: string): Promise<void> {
-    const resolved = await this.resolveSerial(serial);
-    await this.client.shell(resolved, `input tap ${x} ${y}`);
+    const { deviceClient } = await this.getDeviceClient(serial);
+    await deviceClient.shell(`input tap ${x} ${y}`);
   }
 
   async inputText(text: string, serial?: string): Promise<void> {
-    const resolved = await this.resolveSerial(serial);
+    const { deviceClient } = await this.getDeviceClient(serial);
     const escaped = text.replace(/ /g, '%s');
-    await this.client.shell(resolved, `input text "${escaped}"`);
+    await deviceClient.shell(`input text "${escaped}"`);
   }
 
   async startActivity(
     options: Omit<StartActivityOptions, 'component'> & { component: string },
     serial?: string,
   ): Promise<void> {
-    const resolved = await this.resolveSerial(serial);
-    await this.client.startActivity(resolved, options);
+    const { deviceClient } = await this.getDeviceClient(serial);
+    await deviceClient.startActivity(options);
   }
 
   async uiDump(serial?: string): Promise<UiNode> {
-    const resolved = await this.resolveSerial(serial);
+    const { deviceClient } = await this.getDeviceClient(serial);
     const dumpCommand =
       'uiautomator dump /sdcard/uidump.xml && cat /sdcard/uidump.xml && rm /sdcard/uidump.xml';
-    const stream = await this.client.shell(resolved, dumpCommand);
+    const stream = await deviceClient.shell(dumpCommand);
     const xml = await this.readStreamAsString(stream);
     const parser = new XMLParser({
       ignoreAttributes: false,
@@ -101,7 +106,7 @@ export class AdbService {
     device: string;
     product: string;
   }> {
-    const resolved = await this.resolveSerial(serial);
+    const { deviceClient, resolved } = await this.getDeviceClient(serial);
     const props = [
       'ro.product.model',
       'ro.product.manufacturer',
@@ -110,7 +115,7 @@ export class AdbService {
       'ro.product.name',
     ];
     const cmd = props.map((p) => `getprop ${p}`).join(' && ');
-    const stream = await this.client.shell(resolved, cmd);
+    const stream = await deviceClient.shell(cmd);
     const out = (await this.readStreamAsString(stream))
       .split('\n')
       .map((s) => s.trim())
@@ -153,6 +158,12 @@ export class AdbService {
       stream.on('end', () => resolve(Buffer.concat(chunks)));
       stream.on('error', reject);
     });
+  }
+
+  private async getDeviceClient(serial?: string) {
+    const resolved = await this.resolveSerial(serial);
+    const deviceClient = this.client.getDevice(resolved);
+    return { deviceClient, resolved };
   }
 }
 

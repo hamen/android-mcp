@@ -7,7 +7,7 @@
   "scripts": {
     "dev": "tsx src/server.ts",
     "build": "tsc -p tsconfig.json",
-    "test": "tsx tests/init.test.ts && tsx tests/tsconfig.test.ts"
+    "test": "tsx tests/init.test.ts && tsx tests/adbClient.test.ts && tsx tests/tsconfig.test.ts"
   },
   "dependencies": {
     "@devicefarmer/adbkit": "^3.3.8",
